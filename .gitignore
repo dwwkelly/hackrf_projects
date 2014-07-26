@@ -1,1 +1,10 @@
 build
+src/realtime_pb2.py
+src/realtime.pb2.cc
+src/realtime.pb2.h
+src/realtime_pb.py
+src/realtime.pb.cc
+src/realtime.pb.h
+src/proto
+include/realtime.pb2.h
+include/realtime.pb.h
