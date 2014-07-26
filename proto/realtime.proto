@@ -1,0 +1,15 @@
+message Data{
+   enum Axis {
+      x_axis = 1;
+      y_axis = 2;
+      }
+   required int32 length = 1;
+   repeated double samples = 2;
+   optional Axis axis = 3;
+}
+
+message Label{
+   optional string xlabel = 1;
+   optional string ylabel = 2;
+   optional string title = 3;
+}
