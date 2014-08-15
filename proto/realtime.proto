@@ -1,11 +1,11 @@
 message Data{
+   required int32 length = 1;
    enum Axis {
       x_axis = 1;
       y_axis = 2;
       }
-   required int32 length = 1;
-   repeated double samples = 2;
-   optional Axis axis = 3;
+   required Axis axis = 2;
+   repeated double samples = 3;
 }
 
 message Label{
