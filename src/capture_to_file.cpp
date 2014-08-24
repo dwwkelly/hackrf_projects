@@ -10,6 +10,12 @@
       return -1; \
    }
 
+#define CHECK_MALLOC(ptr) \
+   if(ptr == NULL) { \
+      printf("malloc() failed: %s\n", strerror(errno)); \
+      exit(-1); \
+   }
+
 typedef struct _state {
    int counter;
    uint64_t fc;
