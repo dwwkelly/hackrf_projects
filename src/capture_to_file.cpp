@@ -16,6 +16,8 @@
       exit(-1); \
    }
 
+#define MAXFILENAMELEN 256
+
 typedef struct _state {
    int counter;
    uint64_t fc;
