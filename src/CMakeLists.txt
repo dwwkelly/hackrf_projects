@@ -1,7 +1,7 @@
 INCLUDE_DIRECTORIES(../include)
 find_library(hackrf
    NAME hackrf
-   PATHS /usr/local/lib)
+   PATHS /usr/local/lib /opt/sdr/lib)
 
 add_library(hackrf_tools hackrf_tools.cpp)
 target_link_libraries(hackrf_tools zmq)
