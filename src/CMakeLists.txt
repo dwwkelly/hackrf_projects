@@ -11,3 +11,6 @@ target_link_libraries(hackrf_fft hackrf_tools protobuf)
 
 add_executable(hackrf_check hackrf_check.cpp)
 target_link_libraries(hackrf_check hackrf)
+
+add_executable(capture_to_file capture_to_file.cpp)
+target_link_libraries(capture_to_file hackrf)
