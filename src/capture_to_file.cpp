@@ -222,6 +222,7 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
 
    unsigned char* buf = transfer->buffer;
    uint32_t size = transfer->valid_length;
+   s->samples_collected += size/2;
 
    uint32_t ii;
    for(ii=0; ii<(size/2); ii++){
@@ -230,7 +231,7 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
       fprintf(fd, "%f,%f\n", I, Q);
    }
 
-   if(s->counter >= 10){
+   if(s->samples_collected >= s->samples_needed){
       printf("stopping\n");
       fclose(s->fd);
       rc = hackrf_stop_rx(transfer->device);
