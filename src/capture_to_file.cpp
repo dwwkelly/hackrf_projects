@@ -37,6 +37,7 @@ int hackrf_rx_callback(hackrf_transfer *transfer);
 
 int init_state(State* s);
 int print_state(State* s, FILE* dest);
+int print_state_json(State* s, FILE* dest);
 int free_state(State* s);
 int get_args(int argc, char* const argv[], State* s);
 int usage();
@@ -130,10 +131,16 @@ int print_state(State* s, FILE* dest)
    return 0;
 }
 
+int print_state_json(State* s, FILE* dest)
+{
+   const char* fmt = "{\"fc\":%lu, \"fs\":%lu, \"n\":%d, \"vga gain\": %d, \"lna gain\":%d}\n";
+   fprintf(dest, fmt, s->fc, s->fs, s->samples_needed, s->vga_gain, s->lna_gain);
+   return 0;
+}
+
 int change_filename(State* s, char* new_filename, size_t new_filename_len)
 {
    if(s->filename != NULL) {
-      printf("freeing\n");
       free((void*)s->filename);
       s->filename = NULL;
    }
@@ -143,6 +150,11 @@ int change_filename(State* s, char* new_filename, size_t new_filename_len)
    CHECK_MALLOC(s->filename)
    strncpy(s->filename, new_filename, malloc_size);
    s->filename_len = new_filename_len;
+
+   if(s->fd != NULL) {
+      fclose(s->fd);
+   }
+   s->fd = fopen(s->filename, "w");
 
    return 0;
 }
@@ -169,15 +181,17 @@ int free_state(State* s)
 int main(int argc, char *argv[])
 {
 
+   /* setup */
    hackrf_device* device;
    int rc = HACKRF_SUCCESS;
 
    State* s = (State*) malloc(sizeof(State));
    CHECK_MALLOC(s)
-
    init_state(s);
 
    get_args(argc, argv, s);
+
+   print_state_json(s, s->fd);
 
    /* initialization */
    rc = hackrf_init();
@@ -236,6 +250,7 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
       fclose(s->fd);
       rc = hackrf_stop_rx(transfer->device);
       HACKRF_ERROR_CHECK(rc)
+      exit(EXIT_SUCCESS);
    }
 
    return 0;
