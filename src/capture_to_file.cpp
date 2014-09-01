@@ -5,6 +5,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
+#include <pthread.h>
 
 #define HACKRF_ERROR_CHECK(rc) \
    if(rc != HACKRF_SUCCESS) { \
@@ -18,10 +19,16 @@
       exit(-1); \
    }
 
+#define CHECK_PTHREAD(rc) \
+   if(rc != 0) { \
+      printf("%s\n", strerror(rc)); \
+      exit(EXIT_FAILURE); \
+   }
+
 #define MAXFILENAMELEN 256
+#define MAXENDPOINTLEN 512
 
 typedef struct _state {
-   int counter;
    uint64_t fc;
    uint32_t fs;
    uint32_t lna_gain;
@@ -31,6 +38,8 @@ typedef struct _state {
    char* filename;
    size_t filename_len;
    FILE* fd;
+   pthread_mutex_t lock;
+   pthread_cond_t cond;
 } State;
 
 int hackrf_rx_callback(hackrf_transfer *transfer);
@@ -105,9 +114,9 @@ int usage()
 
 int init_state(State* s)
 {
+   int rc;
    char* default_file = "/tmp/data";
    size_t default_file_len = strnlen(default_file, MAXFILENAMELEN);
-   s->counter = 0;
    s->fc = 98000000;  // 98 MHz
    s->fs = 20000000; // 20 MHz
    s->lna_gain = 0;
@@ -116,6 +125,16 @@ int init_state(State* s)
    s->filename = NULL;
    change_filename(s, default_file, default_file_len);
    s->fd = fopen(s->filename, "w");
+
+   rc = pthread_mutex_init(&(s->lock), NULL);
+   CHECK_PTHREAD(rc)
+
+   rc = pthread_cond_init(&(s->cond), NULL);
+   CHECK_PTHREAD(rc)
+
+   rc = pthread_mutex_lock(&(s->lock));
+   CHECK_PTHREAD(rc)
+
    return 0;
 }
 
@@ -182,6 +201,7 @@ int main(int argc, char *argv[])
 {
 
    /* setup */
+
    hackrf_device* device;
    int rc = HACKRF_SUCCESS;
 
@@ -220,18 +240,25 @@ int main(int argc, char *argv[])
    rc = hackrf_start_rx(device, hackrf_rx_callback, (void*)s);
    HACKRF_ERROR_CHECK(rc)
 
-   sleep(100);
+   rc = pthread_cond_wait(&(s->cond), &(s->lock));
+   if(rc < 0){
+      printf("pthread_cond_wait() error\n");
+      exit(EXIT_FAILURE);
+   }
 
-   return 0;
+   exit(EXIT_SUCCESS);
 }
 
 int hackrf_rx_callback(hackrf_transfer *transfer)
 {
 
-   int rc;
    State* s = (State*) transfer->rx_ctx;
-   printf("callback: %d\n", s->counter);
-   s->counter = s->counter + 1;
+   if(s->samples_collected >= s->samples_needed){
+      pthread_cond_signal(&(s->cond));
+      return 0;
+   }
+
+   int rc;
    FILE* fd = s->fd;
 
    unsigned char* buf = transfer->buffer;
@@ -243,14 +270,6 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
       float I = (float(char(buf[2 * ii]))) * 1.0f / 128.0f;
       float Q = (float(char(buf[2 * ii + 1]))) * 1.0f / 128.0f;
       fprintf(fd, "%f,%f\n", I, Q);
-   }
-
-   if(s->samples_collected >= s->samples_needed){
-      printf("stopping\n");
-      fclose(s->fd);
-      rc = hackrf_stop_rx(transfer->device);
-      HACKRF_ERROR_CHECK(rc)
-      exit(EXIT_SUCCESS);
    }
 
    return 0;
