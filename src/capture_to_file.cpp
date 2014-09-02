@@ -267,8 +267,10 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
 
    uint32_t ii;
    for(ii=0; ii<(size/2); ii++){
-      float I = (float(char(buf[2 * ii]))) * 1.0f / 128.0f;
-      float Q = (float(char(buf[2 * ii + 1]))) * 1.0f / 128.0f;
+      float I = (float (char(buf[2 * ii])));
+      I *= 1.0f / 128.0f;
+      float Q = (float (char(buf[2 * ii + 1])));
+      Q *= 1.0f / 128.0f;
       fprintf(fd, "%f,%f\n", I, Q);
    }
 
