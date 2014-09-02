@@ -1,7 +1,8 @@
 INCLUDE_DIRECTORIES(../include)
 find_library(hackrf
    NAME hackrf
-   PATHS /usr/local/lib /opt/sdr/lib)
+   PATHS /opt/sdr/lib /usr/local/lib
+   NODEFAULTPATH)
 
 add_library(hackrf_tools hackrf_tools.cpp)
 target_link_libraries(hackrf_tools zmq)
@@ -14,3 +15,8 @@ target_link_libraries(hackrf_check hackrf)
 
 add_executable(capture_to_file capture_to_file.cpp)
 target_link_libraries(capture_to_file hackrf)
+
+add_executable(energy_detector energy_detector.cpp)
+target_link_libraries(energy_detector hackrf)
+target_link_libraries(energy_detector pthread)
+target_link_libraries(energy_detector zmq)
