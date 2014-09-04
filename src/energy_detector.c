@@ -333,7 +333,6 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    }
 
    // send samples
-   printf("sending\n");
    rc = zmq_send(s->zmq_socket, samples, counter * sizeof(samples), 0);
    CHECK_ZMQ(rc)
 
@@ -379,20 +378,16 @@ void* worker(void* tmp){
 
       rc = zmq_poll(items, 2, -1);
       CHECK_ZMQ(rc)
-      printf("zmq_poll() received\n");
 
       if(items[0].revents & ZMQ_POLLIN) {
-         printf("received samples\n");
          rc = zmq_recv(sock, samples, sizeof(complex float) * buf_size, 0);
          CHECK_ZMQ(rc)
       }
 
       if (items[1].revents & ZMQ_POLLIN) {
-         printf("received done message\n");
          rc = zmq_recv(done_sock, buf, 5, 0);
          CHECK_ZMQ(rc)
          if(rc > 0){
-            printf("receiver a message on done socket: %s\n", buf );
             if(strncmp(buf, "DONE", 4) == 0) {
                printf("done!\n");
                break;
