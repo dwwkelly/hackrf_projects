@@ -16,7 +16,7 @@ target_link_libraries(hackrf_check hackrf)
 add_executable(capture_to_file capture_to_file.cpp)
 target_link_libraries(capture_to_file hackrf)
 
-add_executable(energy_detector energy_detector.cpp)
+add_executable(energy_detector energy_detector.c)
 target_link_libraries(energy_detector hackrf)
 target_link_libraries(energy_detector pthread)
 target_link_libraries(energy_detector zmq)
