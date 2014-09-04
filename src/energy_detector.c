@@ -326,17 +326,17 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    uint32_t size = transfer->valid_length;
    s->samples_collected += size/2;
 
-   float complex *samples;
-   samples = (complex float *) malloc(sizeof(complex float) * size/2);
+   double complex *samples;
+   samples = (complex double *) malloc(sizeof(complex double) * size/2);
    uint32_t counter = 0;
 
    uint32_t ii;
    for(ii=0; ii<(size/2); ii++){
-      float i = (float) ((char)buf[2 * ii]);
+      double i = (double) ((char)buf[2 * ii]);
       i *= 1.0f / 128.0f;
-      float q = (float) ((char)(buf[2 * ii + 1]));
+      double q = (double) ((char)(buf[2 * ii + 1]));
       q *= 1.0f / 128.0f;
-      complex float x = i + q * I;
+      complex double x = i + q * I;
       samples[counter] = x;
       counter++;
    }
@@ -354,7 +354,7 @@ void* worker(void* tmp){
 
    State* s = (State*) tmp;
    int rc;
-   complex float *samples;
+   complex double *samples;
    char buf[5];
 
    pthread_mutex_lock(&(s->state_lock));
