@@ -1,19 +1,22 @@
 #include <libhackrf/hackrf.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <errno.h>
 #include <pthread.h>
+
 #include <fftw3.h>
 #include <complex.h>
 #include <zmq.h>
 
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
 #define HACKRF_ERROR_CHECK(rc) \
    if(rc != HACKRF_SUCCESS) { \
-      printf("%s (%d)\n", hackrf_error_name((hackrf_error)rc), rc); \
+      printf("%s (%d)\n", hackrf_error_name((enum hackrf_error)rc), rc); \
       return -1; \
    }
 
@@ -72,13 +75,15 @@ void* worker(void* tmp);
 int get_args(int argc, char* const argv[], State* s) {
    const char* optstring = "hdf:F:l:v:s:n:";
    char n;
+   int len = 0;
    while((n=getopt(argc, argv, optstring)) != -1) {
       switch(n){
+         case 'F':  // Filename
+            len = strnlen(optarg, MAXFILENAMELEN);
+            change_filename(s, optarg, len);
+            break;
          case 'f':  // Center Frequency
             s->fc = atoi(optarg);
-            break;
-         case 'F':  // Filename
-            change_filename(s, optarg, strnlen(optarg, MAXFILENAMELEN));
             break;
          case 's':  // Sample Rate
             s->fs = atoi(optarg);
@@ -249,7 +254,7 @@ int main(int argc, char *argv[])
       int msecs = 250;
       t.tv_sec = msecs / 1000;
       t.tv_nsec = (msecs % 1000) * 1000000;
-      nanosleep (&t, NULL);
+      nanosleep(&t, NULL);
    }
 
    get_args(argc, argv, s);
@@ -307,7 +312,6 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    }
 
    int rc;
-   FILE* fd = s->fd;
 
    unsigned char* buf = transfer->buffer;
    uint32_t size = transfer->valid_length;
@@ -319,9 +323,9 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
 
    uint32_t ii;
    for(ii=0; ii<(size/2); ii++){
-      float i = (float (char(buf[2 * ii])));
+      float i = (float) ((char)buf[2 * ii]);
       i *= 1.0f / 128.0f;
-      float q = (float (char(buf[2 * ii + 1])));
+      float q = (float) ((char)(buf[2 * ii + 1]));
       q *= 1.0f / 128.0f;
       complex float x = i + q * I;
       samples[counter] = x;
