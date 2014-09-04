@@ -8,8 +8,8 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include <fftw3.h>
 #include <complex.h>
+#include <fftw3.h>
 #include <zmq.h>
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
