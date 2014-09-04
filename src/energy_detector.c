@@ -342,6 +342,8 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    }
 
    // send samples
+   rc = zmq_send(s->zmq_socket, &counter, sizeof(counter), ZMQ_SNDMORE);
+   CHECK_ZMQ(rc)
    rc = zmq_send(s->zmq_socket, samples, counter * sizeof(samples), 0);
    CHECK_ZMQ(rc)
 
