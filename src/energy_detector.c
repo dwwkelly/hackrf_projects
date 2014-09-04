@@ -393,7 +393,6 @@ void* worker(void* tmp){
          CHECK_ZMQ(rc)
          if(rc > 0){
             if(strncmp(buf, "DONE", 4) == 0) {
-               printf("done!\n");
                break;
             }
          }
