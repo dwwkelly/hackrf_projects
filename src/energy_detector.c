@@ -380,13 +380,20 @@ void* worker(void* tmp){
 
    while(1) {
       size_t buf_size = 4194304;
-      samples = (complex float *) malloc(sizeof(complex float) * buf_size);
 
       rc = zmq_poll(items, 2, -1);
       CHECK_ZMQ(rc)
 
       if(items[0].revents & ZMQ_POLLIN) {
-         rc = zmq_recv(sock, samples, sizeof(complex float) * buf_size, 0);
+         uint32_t n_samples;
+
+         rc = zmq_recv(sock, &n_samples, sizeof(n_samples), 0);
+         CHECK_ZMQ(rc)
+
+         in = (complex double *) fftw_malloc(sizeof(complex double) * n_samples);
+         out = in;
+
+         rc = zmq_recv(sock, in, sizeof(complex double) * buf_size, 0);
          CHECK_ZMQ(rc)
       }
 
@@ -399,11 +406,11 @@ void* worker(void* tmp){
             }
          }
       }
-
-      free((void*)samples);
-      samples = NULL;
    }
 
+   if(in != NULL){
+      fftw_free(in);
+   }
    zmq_close(sock);
    zmq_close(done_sock);
 
