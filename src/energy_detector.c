@@ -309,11 +309,10 @@ int main(int argc, char *argv[])
 
 int hackrf_rx_callback(hackrf_transfer *transfer)
 {
-
    State* s = (State*) transfer->rx_ctx;
    if(s->samples_collected >= s->samples_needed){
       int rc = 0;
-      rc = zmq_send(s->zmq_done_socket, "A", 1, ZMQ_SNDMORE);
+      rc = zmq_send(s->zmq_done_socket, "DONE", 4, ZMQ_SNDMORE);
       CHECK_ZMQ(rc)
       rc = zmq_send(s->zmq_done_socket, "DONE", 4, 0);
       CHECK_ZMQ(rc)
@@ -371,7 +370,7 @@ void* worker(void* tmp){
    CHECK_ZMQ(rc)
    pthread_mutex_unlock(&(s->state_lock));
 
-   rc = zmq_setsockopt(done_sock, ZMQ_SUBSCRIBE, "A", 1);
+   rc = zmq_setsockopt(done_sock, ZMQ_SUBSCRIBE, "DONE", 4);
    CHECK_ZMQ(rc)
 
    zmq_pollitem_t items[] = {{sock, 0, ZMQ_POLLIN, 0},
