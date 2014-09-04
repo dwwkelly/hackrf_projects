@@ -6,8 +6,8 @@
 #include <getopt.h>
 #include <errno.h>
 #include <pthread.h>
-#include <complex.h>
 #include <fftw3.h>
+#include <complex.h>
 #include <zmq.h>
 
 
@@ -313,7 +313,7 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    uint32_t size = transfer->valid_length;
    s->samples_collected += size/2;
 
-   complex float *samples;
+   float complex *samples;
    samples = (complex float *) malloc(sizeof(complex float) * size/2);
    uint32_t counter = 0;
 
@@ -348,15 +348,23 @@ void* worker(void* tmp){
    pthread_mutex_lock(&(s->state_lock));
 
    void* sock = zmq_socket(s->zmq_context, ZMQ_PULL);
+   if(sock == NULL) {
+      printf("%s\n", zmq_strerror(zmq_errno()));
+      exit(EXIT_FAILURE);
+   }
    rc = zmq_bind(sock, s->zmq_endpoint);
    CHECK_ZMQ(rc)
 
    void* done_sock = zmq_socket(s->zmq_context, ZMQ_SUB);
+   if(done_sock == NULL) {
+      printf("%s\n", zmq_strerror(zmq_errno()));
+      exit(EXIT_FAILURE);
+   }
    rc = zmq_connect(done_sock, s->zmq_done_endpoint);
    CHECK_ZMQ(rc)
    pthread_mutex_unlock(&(s->state_lock));
 
-   zmq_setsockopt(s->zmq_done_socket, ZMQ_SUBSCRIBE, "A", 1);
+   zmq_setsockopt(done_sock, ZMQ_SUBSCRIBE, "A", 1);
 
    zmq_pollitem_t items[] = {{sock, 0, ZMQ_POLLIN, 0},
                              {done_sock, 0, ZMQ_POLLIN, 0}};
