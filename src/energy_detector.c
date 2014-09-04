@@ -38,6 +38,13 @@
       exit(EXIT_FAILURE); \
    }
 
+#define CHECK_ZMQ_PTR(ptr) \
+   if(ptr == NULL) { \
+      printf("%s\n", zmq_strerror(zmq_errno())); \
+      exit(EXIT_FAILURE); \
+   }
+
+
 #define MAXFILENAMELEN 256
 #define MAXENDPOINTLEN 512
 
