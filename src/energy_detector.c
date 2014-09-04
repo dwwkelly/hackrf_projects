@@ -371,7 +371,8 @@ void* worker(void* tmp){
    CHECK_ZMQ(rc)
    pthread_mutex_unlock(&(s->state_lock));
 
-   zmq_setsockopt(done_sock, ZMQ_SUBSCRIBE, "A", 1);
+   rc = zmq_setsockopt(done_sock, ZMQ_SUBSCRIBE, "A", 1);
+   CHECK_ZMQ(rc)
 
    zmq_pollitem_t items[] = {{sock, 0, ZMQ_POLLIN, 0},
                              {done_sock, 0, ZMQ_POLLIN, 0}};
