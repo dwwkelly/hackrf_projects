@@ -247,9 +247,12 @@ int main(int argc, char *argv[])
    s->zmq_endpoint = "inproc://hackrf";
    s->zmq_done_endpoint = "inproc://done";
    s->zmq_context = zmq_ctx_new();
+   CHECK_ZMQ_PTR(s->zmq_context)
    s->zmq_socket = zmq_socket(s->zmq_context, ZMQ_PUSH);
+   CHECK_ZMQ_PTR(s->zmq_socket)
 
    s->zmq_done_socket = zmq_socket(s->zmq_context, ZMQ_PUB);
+   CHECK_ZMQ_PTR(s->zmq_done_socket)
    rc = zmq_bind(s->zmq_done_socket, s->zmq_done_endpoint);
    CHECK_ZMQ(rc)
 
@@ -358,18 +361,12 @@ void* worker(void* tmp){
    pthread_mutex_lock(&(s->state_lock));
 
    void* sock = zmq_socket(s->zmq_context, ZMQ_PULL);
-   if(sock == NULL) {
-      printf("%s\n", zmq_strerror(zmq_errno()));
-      exit(EXIT_FAILURE);
-   }
+   CHECK_ZMQ_PTR(sock)
    rc = zmq_bind(sock, s->zmq_endpoint);
    CHECK_ZMQ(rc)
 
    void* done_sock = zmq_socket(s->zmq_context, ZMQ_SUB);
-   if(done_sock == NULL) {
-      printf("%s\n", zmq_strerror(zmq_errno()));
-      exit(EXIT_FAILURE);
-   }
+   CHECK_ZMQ_PTR(done_sock)
    rc = zmq_connect(done_sock, s->zmq_done_endpoint);
    CHECK_ZMQ(rc)
    pthread_mutex_unlock(&(s->state_lock));
