@@ -378,6 +378,13 @@ void* worker(void* tmp){
    zmq_pollitem_t items[] = {{sock, 0, ZMQ_POLLIN, 0},
                              {done_sock, 0, ZMQ_POLLIN, 0}};
 
+   FILE* fd = fopen("/tmp/fft", "w+");
+   fftw_complex *in = NULL;
+   fftw_complex* out = NULL;
+   fftw_plan p;
+
+   int N = 4096;
+
    while(1) {
       size_t buf_size = 4194304;
 
@@ -395,6 +402,14 @@ void* worker(void* tmp){
 
          rc = zmq_recv(sock, in, sizeof(complex double) * buf_size, 0);
          CHECK_ZMQ(rc)
+
+         p = fftw_plan_dft_1d(n_samples, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+         fftw_execute(p);
+
+         uint32_t ii;
+         for(ii=0; ii<n_samples; ii++) {
+            fprintf(fd, "%f,%f\n", creal(out[ii]), cimag(out[ii]));
+         }
       }
 
       if (items[1].revents & ZMQ_POLLIN) {
@@ -408,6 +423,7 @@ void* worker(void* tmp){
       }
    }
 
+   fftw_destroy_plan(p);
    if(in != NULL){
       fftw_free(in);
    }
