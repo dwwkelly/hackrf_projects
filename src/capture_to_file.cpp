@@ -104,7 +104,7 @@ int usage()
 {
    printf("[-f] Center Frequency    [default=98 MHz]\n");
    printf("[-s] Sample Rate         [default=20 MHz]\n");
-   printf("[-n] Number of Samples   [default=5000]\n");
+   printf("[-n] Number of Samples   [default=10000]\n");
    printf("[-v] VGA Gain            [default=0 dB]\n");
    printf("[-l] LNA Gain            [default=0 dB]\n");
    printf("[-F] Filename            [default=/tmp/data]\n");
