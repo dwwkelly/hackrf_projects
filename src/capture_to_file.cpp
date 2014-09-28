@@ -261,6 +261,10 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    FILE* fd = s->fd;
    unsigned char* buf = transfer->buffer;
    uint32_t size = transfer->valid_length;
+
+   if (size > s->samples_needed - s->samples_collected) {
+      size = (s->samples_needed - s->samples_collected) * 2;
+   }
    s->samples_collected += size/2;
 
    uint32_t ii;
