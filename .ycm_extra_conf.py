@@ -4,11 +4,13 @@ import ycm_core
 flags = [
 '-Wall',
 '-Wextra',
-'-Wno-write-strings',
+'-Wwrite-strings',
 '-Wno-variadic-macros',
 '-fexceptions',
 '-Wimplicit-function-declaration',
-'-std=c99'
+'-std=c99',
+'-I include',
+'-I /opt/sdr/include/'
 ]
 
 
