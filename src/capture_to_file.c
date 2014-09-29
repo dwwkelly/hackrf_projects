@@ -6,48 +6,13 @@
 #include <getopt.h>
 #include <errno.h>
 #include <pthread.h>
+#include <complex.h>
 
-#define HACKRF_ERROR_CHECK(rc) \
-   if(rc != HACKRF_SUCCESS) { \
-      printf("%s (%d)\n", hackrf_error_name((hackrf_error)rc), rc); \
-      return -1; \
-   }
-
-#define CHECK_MALLOC(ptr) \
-   if(ptr == NULL) { \
-      printf("malloc() failed: %s\n", strerror(errno)); \
-      exit(-1); \
-   }
-
-#define CHECK_PTHREAD(rc) \
-   if(rc != 0) { \
-      printf("%s\n", strerror(rc)); \
-      exit(EXIT_FAILURE); \
-   }
-
-#define MAXFILENAMELEN 256
-#define MAXENDPOINTLEN 512
-
-typedef struct _state {
-   uint64_t fc;
-   uint32_t fs;
-   uint32_t lna_gain;
-   uint32_t vga_gain;
-   uint32_t samples_needed;
-   uint32_t samples_collected;
-   char* filename;
-   size_t filename_len;
-   FILE* fd;
-   pthread_mutex_t lock;
-   pthread_cond_t cond;
-} State;
+#include "util.h"
+#include "hackrf_state.h"
 
 int hackrf_rx_callback(hackrf_transfer *transfer);
 
-int init_state(State* s);
-int print_state(State* s, FILE* dest);
-int print_state_json(State* s, FILE* dest);
-int free_state(State* s);
 int get_args(int argc, char* const argv[], State* s);
 int usage();
 int change_filename(State* s, char* new_filename, size_t new_filename_len);
@@ -112,90 +77,6 @@ int usage()
    return 0;
 }
 
-int init_state(State* s)
-{
-   int rc;
-   char* default_file = "/tmp/data";
-   size_t default_file_len = strnlen(default_file, MAXFILENAMELEN);
-   s->fc = 98000000;  // 98 MHz
-   s->fs = 20000000; // 20 MHz
-   s->lna_gain = 0;
-   s->vga_gain = 0;
-   s->samples_needed = 10000;
-   s->filename = NULL;
-   change_filename(s, default_file, default_file_len);
-   s->fd = fopen(s->filename, "w");
-
-   rc = pthread_mutex_init(&(s->lock), NULL);
-   CHECK_PTHREAD(rc)
-
-   rc = pthread_cond_init(&(s->cond), NULL);
-   CHECK_PTHREAD(rc)
-
-   rc = pthread_mutex_lock(&(s->lock));
-   CHECK_PTHREAD(rc)
-
-   return 0;
-}
-
-int print_state(State* s, FILE* dest)
-{
-   fprintf(dest, "Center Frequency: %lu\n", s->fc);
-   fprintf(dest, "Sample Rate: %d\n", s->fs);
-   fprintf(dest, "Number of Samples: %d\n", s->samples_needed);
-   fprintf(dest, "VGA Gain: %d\n", s->vga_gain);
-   fprintf(dest, "LNA Gain: %d\n", s->lna_gain);
-   fprintf(dest, "Filename: %s\n", s->filename);
-   fprintf(dest, "Filename Length: %lu\n", s->filename_len);
-   return 0;
-}
-
-int print_state_json(State* s, FILE* dest)
-{
-   const char* fmt = "{\"fc\":%lu, \"fs\":%lu, \"n\":%d, \"vga gain\": %d, \"lna gain\":%d}\n";
-   fprintf(dest, fmt, s->fc, s->fs, s->samples_needed, s->vga_gain, s->lna_gain);
-   return 0;
-}
-
-int change_filename(State* s, char* new_filename, size_t new_filename_len)
-{
-   if(s->filename != NULL) {
-      free((void*)s->filename);
-      s->filename = NULL;
-   }
-
-   size_t malloc_size = sizeof(char) * (new_filename_len + 1);
-   s->filename = (char*) malloc(malloc_size);
-   CHECK_MALLOC(s->filename)
-   strncpy(s->filename, new_filename, malloc_size);
-   s->filename_len = new_filename_len;
-
-   if(s->fd != NULL) {
-      fclose(s->fd);
-   }
-   s->fd = fopen(s->filename, "w");
-
-   return 0;
-}
-
-int free_state(State* s)
-{
-
-   if(s->fd != NULL){
-      fclose(s->fd);
-   }
-
-   if(s->filename != NULL) {
-      free((void*)s->filename);
-      s->filename = NULL;
-   }
-
-   if(s != NULL){
-      free((void*)s);
-      s = NULL;
-   }
-   return 0;
-}
 
 int main(int argc, char *argv[])
 {
@@ -259,21 +140,24 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    }
 
    FILE* fd = s->fd;
-   unsigned char* buf = transfer->buffer;
+   unsigned short* buf = (unsigned short*) transfer->buffer;
    uint32_t size = transfer->valid_length;
 
    if (size/2 > s->samples_needed - s->samples_collected) {
-      size = (s->samples_needed - s->samples_collected) * 2;
+      size = (s->samples_needed - s->samples_collected);
    }
-   s->samples_collected += size/2;
+   s->samples_collected += size;
 
-   uint32_t ii;
-   for(ii=0; ii<(size/2); ii++){
-      float I = (float) ((char)buf[2 * ii]);
-      I *= 1.0f / 128.0f;
-      float Q = (float) ((char)buf[2 * ii + 1]);
-      Q *= 1.0f / 128.0f;
-      fprintf(fd, "%f,%f\n", I, Q);
+   unsigned short ii = 0;
+   for(ii=0; ii<size; ii++){
+
+      /*
+      float I = (float(char(ii & 0xff))) * (1.0f/128.0f);
+      float Q = (float(char(ii >> 8))) * (1.0f/128.0f);
+      */
+
+      complex float X = s->lut[buf[ii]];
+      fprintf(fd, "%0.8f,%0.8f\n", crealf(X), cimagf(X));
    }
 
    return 0;
