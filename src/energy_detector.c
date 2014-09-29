@@ -7,43 +7,12 @@
 #include <getopt.h>
 #include <errno.h>
 #include <pthread.h>
-
 #include <complex.h>
 #include <fftw3.h>
 #include <zmq.h>
+#include "util.h"
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
-
-#define HACKRF_ERROR_CHECK(rc) \
-   if(rc != HACKRF_SUCCESS) { \
-      printf("%s (%d)\n", hackrf_error_name((enum hackrf_error)rc), rc); \
-      return -1; \
-   }
-
-#define CHECK_MALLOC(ptr) \
-   if(ptr == NULL) { \
-      printf("malloc() failed: %s\n", strerror(errno)); \
-      exit(-1); \
-   }
-
-#define CHECK_PTHREAD(rc) \
-   if(rc != 0) { \
-      printf("%s\n", strerror(rc)); \
-      exit(EXIT_FAILURE); \
-   }
-
-#define CHECK_ZMQ(rc) \
-   if(rc < 0) { \
-      printf("%s\n", zmq_strerror(zmq_errno())); \
-      exit(EXIT_FAILURE); \
-   }
-
-#define CHECK_ZMQ_PTR(ptr) \
-   if(ptr == NULL) { \
-      printf("%s\n", zmq_strerror(zmq_errno())); \
-      exit(EXIT_FAILURE); \
-   }
-
 
 #define MAXFILENAMELEN 256
 #define MAXENDPOINTLEN 512
