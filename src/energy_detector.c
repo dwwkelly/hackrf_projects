@@ -46,7 +46,7 @@ int free_state(State* s);
 int get_args(int argc, char* const argv[], State* s);
 int usage();
 int change_filename(State* s, char* new_filename, size_t new_filename_len);
-void* worker(void* tmp);
+void* fft(void* tmp);
 
 int get_args(int argc, char* const argv[], State* s) {
    const char* optstring = "hdf:F:l:v:s:n:";
@@ -225,8 +225,8 @@ int main(int argc, char *argv[])
    rc = zmq_bind(s->zmq_done_socket, s->zmq_done_endpoint);
    CHECK_ZMQ(rc)
 
-   pthread_t worker_tid;
-   pthread_create(&worker_tid, NULL, worker, (void*)s);
+   pthread_t fft_tid;
+   pthread_create(&fft_tid, NULL, fft, (void*)s);
 
    while((rc = zmq_connect(s->zmq_socket, s->zmq_endpoint)) != 0){
       struct timespec t;
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
    rc = pthread_cond_wait(&(s->cond), &(s->lock));
    CHECK_PTHREAD(rc)
 
-   rc = pthread_join(worker_tid, NULL);
+   rc = pthread_join(fft_tid, NULL);
    CHECK_PTHREAD(rc)
 
    exit(EXIT_SUCCESS);
@@ -321,11 +321,10 @@ int hackrf_rx_callback(hackrf_transfer *transfer)
    return 0;
 }
 
-void* worker(void* tmp){
+void* fft(void* tmp){
 
    State* s = (State*) tmp;
    int rc;
-   complex double *samples;
    char buf[5];
 
    pthread_mutex_lock(&(s->state_lock));
