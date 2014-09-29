@@ -346,12 +346,15 @@ void* fft(void* tmp){
    zmq_pollitem_t items[] = {{sock, 0, ZMQ_POLLIN, 0},
                              {done_sock, 0, ZMQ_POLLIN, 0}};
 
-   FILE* fd = fopen("/tmp/fft", "w+");
-   fftw_complex *in = NULL;
-   fftw_complex* out = NULL;
-   fftw_plan p;
-
    int N = 4096;
+   int max_samples = 5e6;
+   fftw_complex *in = NULL;
+   fftw_complex *out = NULL;
+   in = (complex double *) fftw_malloc(sizeof(complex double) * max_samples);
+   out = (complex double *) fftw_malloc(sizeof(complex double) * max_samples);
+   fftw_plan p;
+   p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
 
    while(1) {
       size_t buf_size = 4194304;
@@ -362,22 +365,18 @@ void* fft(void* tmp){
       if(items[0].revents & ZMQ_POLLIN) {
          uint32_t n_samples;
 
+         // get the number of samples coming in
          rc = zmq_recv(sock, &n_samples, sizeof(n_samples), 0);
          CHECK_ZMQ(rc)
 
-         in = (complex double *) fftw_malloc(sizeof(complex double) * n_samples);
-         out = in;
-
+         // get the samples themselves
          rc = zmq_recv(sock, in, sizeof(complex double) * buf_size, 0);
          CHECK_ZMQ(rc)
 
-         p = fftw_plan_dft_1d(n_samples, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
          fftw_execute(p);
 
-         uint32_t ii;
-         for(ii=0; ii<n_samples; ii++) {
-            fprintf(fd, "%f,%f\n", creal(out[ii]), cimag(out[ii]));
-         }
+         write_samples_to_file("/tmp/samples", in, N);
+         write_samples_to_file("/tmp/fft_out", out, N);
       }
 
       if (items[1].revents & ZMQ_POLLIN) {
