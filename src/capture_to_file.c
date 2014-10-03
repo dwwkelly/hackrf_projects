@@ -8,8 +8,8 @@
 #include <pthread.h>
 #include <complex.h>
 
-#include "util.h"
-#include "hackrf_state.h"
+#include <hackrf_state.h>
+#include <hackrf_util.h>
 
 int hackrf_rx_callback(hackrf_transfer *transfer);
 
