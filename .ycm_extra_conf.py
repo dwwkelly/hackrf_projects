@@ -9,8 +9,8 @@ flags = [
 '-fexceptions',
 '-Wimplicit-function-declaration',
 '-std=c99',
-'-I include',
-'-I /opt/sdr/include/'
+'-Iinclude/',
+'-I/opt/sdr/include/'
 ]
 
 
