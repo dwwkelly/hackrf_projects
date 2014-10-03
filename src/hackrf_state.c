@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <complex.h>
+
+#include "hackrf_util.h"
 #include "hackrf_state.h"
-#include "util.h"
 
 int init_state(State* s)
 {

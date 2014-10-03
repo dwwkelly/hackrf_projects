@@ -1,3 +1,6 @@
+#ifndef HACKRF_STATE
+#define HACKRF_STATE
+
 #include <libhackrf/hackrf.h>
 #include <unistd.h>
 #include <string.h>
@@ -32,3 +35,5 @@ int print_state(State* s, FILE* dest);
 int print_state_json(State* s, FILE* dest);
 int free_state(State* s);
 int change_filename(State* s, char* new_filename, size_t new_filename_len);
+
+#endif
