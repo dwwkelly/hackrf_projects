@@ -110,6 +110,10 @@ int main(int argc, char *argv[])
    rc = hackrf_set_sample_rate_manual(device, s->fs, 1);
    HACKRF_ERROR_CHECK(rc)
 
+   /* set bandwidth */
+   rc = hackrf_set_baseband_filter_bandwidth(device, (uint32_t) s->fs);
+   HACKRF_ERROR_CHECK(rc)
+
    /* set gain */
    rc = hackrf_set_lna_gain(device, s->lna_gain);
    HACKRF_ERROR_CHECK(rc)
