@@ -1,3 +1,6 @@
+#ifndef HACKRF_TOOLS
+#define HACKRF_TOOLS
+
 #include <zmq.h>
 #include <zmq.hpp>
 #include <string>
@@ -31,3 +34,5 @@ class Data_Publisher {
    protected:
 
 };
+
+#endif
