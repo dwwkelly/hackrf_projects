@@ -102,6 +102,10 @@ int main(int argc, char *argv[])
    rc = hackrf_open(&device);
    HACKRF_ERROR_CHECK(rc)
 
+   /* tune */
+   rc = hackrf_set_freq(device, s->fc);
+   HACKRF_ERROR_CHECK(rc)
+
    /* set sample rate */
    rc = hackrf_set_sample_rate_manual(device, s->fs, 1);
    HACKRF_ERROR_CHECK(rc)
@@ -111,10 +115,6 @@ int main(int argc, char *argv[])
    HACKRF_ERROR_CHECK(rc)
 
    rc = hackrf_set_vga_gain(device, s->vga_gain);
-   HACKRF_ERROR_CHECK(rc)
-
-   /* tune */
-   rc = hackrf_set_freq(device, s->fc);
    HACKRF_ERROR_CHECK(rc)
 
    /* start hacking */
