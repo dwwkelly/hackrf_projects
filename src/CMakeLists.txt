@@ -14,10 +14,10 @@ target_link_libraries(hackrf_fft hackrf_tools protobuf)
 add_executable(hackrf_check hackrf_check.cpp)
 target_link_libraries(hackrf_check hackrf)
 
-add_executable(capture_to_file capture_to_file.c hackrf_state.c util.c)
+add_executable(capture_to_file capture_to_file.c hackrf_state.c hackrf_util.c)
 target_link_libraries(capture_to_file hackrf)
 
-add_executable(energy_detector energy_detector.c util.c)
+add_executable(energy_detector energy_detector.c hackrf_util.c)
 target_link_libraries(energy_detector hackrf)
 target_link_libraries(energy_detector pthread)
 target_link_libraries(energy_detector zmq)
