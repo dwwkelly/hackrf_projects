@@ -10,7 +10,7 @@
 #include <complex.h>
 #include <fftw3.h>
 #include <zmq.h>
-#include "util.h"
+#include <hackrf_util.h>
 
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
