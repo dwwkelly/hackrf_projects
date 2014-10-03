@@ -1,3 +1,6 @@
+#ifndef HACKRF_UTIL
+#define HACKRF_UTIL
+
 #ifndef _GNU_SOURCE
    #define _GNU_SOURCE
 #endif
@@ -48,4 +51,4 @@ int read_samples_from_file(const char* filename, complex double* samples, size_t
 int write_samples_to_file(const char* filename, complex double* samples, size_t samples_len);
 int print_samples(complex double* samples, size_t samples_len);
 
-
+#endif

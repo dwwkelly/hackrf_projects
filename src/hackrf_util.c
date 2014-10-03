@@ -1,4 +1,4 @@
-#include "util.h"
+#include "hackrf_util.h"
 
 int read_samples_from_file(const char* filename, complex double* samples, size_t samples_len) {
 
